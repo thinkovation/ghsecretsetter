@@ -22,8 +22,7 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.SSL_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H "${{ secrets.HOSTNAME }}" >> ~/.ssh/known_hosts
-        
+      
     - name: Test SSH connection
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
