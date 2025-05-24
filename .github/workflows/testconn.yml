@@ -27,7 +27,7 @@ jobs:
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
           -o ConnectTimeout=10 \
-          root@${{ secrets.HOSTNAME }} \
+          deploy@${{ secrets.HOSTNAME }} \
           "${{ github.event.inputs.command || 'whoami && hostname && uptime' }}"
           
     - name: Cleanup SSH key
