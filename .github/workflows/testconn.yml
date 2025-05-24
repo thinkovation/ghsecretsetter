@@ -27,10 +27,20 @@ jobs:
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
           -o ConnectTimeout=10 \
-          deploy@${{ secrets.HOSTNAME }} \
+          ${{secrets.REMOTE_USER}}@${{ secrets.REMOTE_HOST }} \
           "${{ github.event.inputs.command || 'whoami && hostname && uptime' }}"
           
-    - name: Cleanup SSH key
+    - name: Securely remove SSH key
       if: always()
       run: |
-        rm -f ~/.ssh/id_rsa
+        if [ -f ~/.ssh/id_rsa ]; then
+            echo "Overwriting private key with random data prior to deleting"
+            # Overwrite with random data of the same size
+            filesize=$(stat -c%s ~/.ssh/id_rsa)
+            head -c $filesize /dev/urandom > ~/.ssh/id_rsa.overwrite
+            mv ~/.ssh/id_rsa.overwrite ~/.ssh/id_rsa
+            # Now delete
+            echo "Deleting private key"
+            rm -f ~/.ssh/id_rsa
+            echo "SSH key securely overwritten and deleted"
+        fi
