@@ -1,0 +1,37 @@
+name: Test Connection
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 'SSH command to run on remote server'
+        required: false
+        default: 'whoami && hostname && uptime'
+        type: string
+
+jobs:
+  test-ssh-connection:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSL_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H "${{ secrets.HOSTNAME }}" >> ~/.ssh/known_hosts
+        
+    - name: Test SSH connection
+      run: |
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+          -o ConnectTimeout=10 \
+          root@${{ secrets.HOSTNAME }} \
+          "${{ github.event.inputs.command || 'whoami && hostname && uptime' }}"
+          
+    - name: Cleanup SSH key
+      if: always()
+      run: |
+        rm -f ~/.ssh/id_rsa
